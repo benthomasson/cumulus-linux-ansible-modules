@@ -275,8 +275,41 @@ def test_build_desired_iface_config(mock_module,
     assert_equals(mock_bridge.call_count, 4)
     assert_equals(mock_generic.call_count, 2)
 
-
+@mock.patch('library.cl_bridge.AnsibleModule')
+@mock.patch('library.cl_bridge.run_cmd')
+def test_replace_config_ifquery_not_outputting_text(mock_run_cmd, mock_module):
+    mock_module.params = {'location': './tests/',
+                          'name': 'swp1'
+                          }
+    mock_module.custom_desired_config = {
+        'name': 'swp1',
+        'addr_method': None,
+        'config':
+        {'address': '10.1.1.2/24',
+         'mtu': '9000'}
+    }
+    mock_run_cmd.return_value = ''
+    mock_module.jsonify = MagicMock(
+        return_value=json.dumps([mock_module.custom_desired_config]))
+    cl_int.replace_config(mock_module)
+    _msg='desired_config not copied into ifupdown2 text format. Not writing config to file'
+    mock_module.fail_json.assert_called_with(msg=_msg)
 
 @mock.patch('library.cl_bridge.AnsibleModule')
-def test_replace_config(mock_module):
-    pass
+@mock.patch('library.cl_bridge.run_cmd')
+def test_replace_config_ifquery_not_outputting_text(mock_run_cmd, mock_module):
+    mock_module.params = {'location': './tests/',
+                          'name': 'swp1'
+                          }
+    mock_module.custom_desired_config = {
+        'name': 'swp1',
+        'addr_method': None,
+        'config':
+        {'address': '10.1.1.2/24',
+         'mtu': '9000'}
+    }
+    mock_run_cmd.return_value = 'ifupdown did something'
+    mock_module.jsonify = MagicMock(
+        return_value=json.dumps([mock_module.custom_desired_config]))
+    cl_int.replace_config(mock_module)
+    assert_equals(mock_module.fail_json.call_count, 0)

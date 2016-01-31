@@ -321,6 +321,10 @@ def replace_config(module):
     finally:
         temp.close()
 
+    if desired_config and not final_text:
+        failure_msg = "desired_config not copied into ifupdown2 text format. Not writing config to file"
+        module.fail_json(msg=failure_msg)
+
     try:
         _fh.write(final_text)
     finally:
